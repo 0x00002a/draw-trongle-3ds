@@ -7,10 +7,5 @@
         "--message-format=json-diagnostic-rendered-ansi",
     ],
     "rust-analyzer.cargo.target": "armv6k-nintendo-3ds",
-    "rust-analyzer.server.extraEnv": {
-        "DEVKITARM": "/opt/devkitpro/devkitARM",
-        "DEVKITPPC": "/opt/devkitpro/devkitPPC",
-        "DEVKITPRO": "/opt/devkitpro"
-    },
     "rust-analyzer.showUnlinkedFileNotification": false
 }
