@@ -1,6 +1,12 @@
-use std::mem::MaybeUninit;
+use std::{fmt::Debug, mem::MaybeUninit};
 
+use citro3d::{
+    math::{FVec3, FVec4},
+    Instance,
+};
 use ctru::linear::LinearAllocator;
+
+use crate::Uniforms;
 
 use super::{colour::Colour, texture::Texture};
 
@@ -173,6 +179,13 @@ impl C3DTex {
     }
 }
 
+impl Debug for C3DTex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let (width, height) = self.dims();
+        write!(f, "C3DTex({}\u{00D7}{})", width, height)
+    }
+}
+
 impl Drop for C3DTex {
     #[doc(alias = "C3D_TexDelete")]
     fn drop(&mut self) {
@@ -186,6 +199,7 @@ pub struct Material {
     colour: Option<Colour>,
     ambient: Option<Colour>,
     vertex_colours: bool,
+    citro_tex: Option<C3DTex>,
 }
 
 impl Material {
@@ -195,11 +209,13 @@ impl Material {
         ambient: Option<Colour>,
         vertex_colours: bool,
     ) -> Self {
+        let citro_tex = Self::make_texture(&texture);
         Self {
             texture,
             colour,
             ambient,
             vertex_colours,
+            citro_tex,
         }
     }
 
@@ -207,13 +223,54 @@ impl Material {
         self.vertex_colours
     }
 
-    pub fn make_texture(&self) -> Option<C3DTex> {
-        if let Some(tex) = &self.texture {
+    fn make_texture(texture: &Option<Texture>) -> Option<C3DTex> {
+        if let Some(tex) = texture {
             let t = C3DTex::new(tex.width, tex.height, TextureColour::Rgba8).ok()?;
             t.upload(&tex.data);
             Some(t)
         } else {
             None
+        }
+    }
+
+    pub fn get_texture(&self) -> Option<&C3DTex> {
+        if let Some(tex) = &self.citro_tex {
+            Some(tex)
+        } else {
+            None
+        }
+    }
+
+    pub fn set_uniforms(&self, _gpu: &mut Instance, uniforms: &Uniforms) {
+        let amb = if let Some(clr) = &self.ambient {
+            clr.into()
+        } else {
+            FVec4::new(0.0, 0.0, 0.0, 0.0)
+        };
+
+        let emi = if let Some(clr) = &self.colour {
+            clr.into()
+        } else {
+            FVec4::new(0.0, 0.0, 0.0, 0.0)
+        };
+
+        unsafe {
+            citro3d_sys::C3D_FVUnifSet(
+                citro3d::shader::Type::Vertex.into(),
+                uniforms.material_ambient.into(),
+                amb.x(),
+                amb.y(),
+                amb.z(),
+                amb.w(),
+            );
+            citro3d_sys::C3D_FVUnifSet(
+                citro3d::shader::Type::Vertex.into(),
+                uniforms.material_emission.into(),
+                emi.x(),
+                emi.y(),
+                emi.z(),
+                emi.w(),
+            );
         }
     }
 }

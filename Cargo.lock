@@ -167,7 +167,7 @@ checksum = "a3c6565524986fe3225da0beb9b4aa55ebc73cd57ff8cb4ccf016ca4c8d006af"
 [[package]]
 name = "ctru-rs"
 version = "0.7.1"
-source = "git+https://github.com/rust3ds/ctru-rs#4c0ebcd60771a1e759940d76c9e8bc8f9197d543"
+source = "git+https://github.com/rust3ds/ctru-rs?branch=feature/ir-user#979fd50fe2cfcc37a0038ee0c788e35447d5deee"
 dependencies = [
  "bitflags 2.4.1",
  "cfg-if",
@@ -183,7 +183,7 @@ dependencies = [
 [[package]]
 name = "ctru-sys"
 version = "0.5.0"
-source = "git+https://github.com/rust3ds/ctru-rs#4c0ebcd60771a1e759940d76c9e8bc8f9197d543"
+source = "git+https://github.com/rust3ds/ctru-rs?branch=feature/ir-user#979fd50fe2cfcc37a0038ee0c788e35447d5deee"
 dependencies = [
  "bindgen 0.65.1",
  "cc",

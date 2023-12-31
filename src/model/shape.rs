@@ -1,4 +1,6 @@
-use super::material::Material;
+use crate::Uniforms;
+
+use super::material::{C3DTex, Material};
 use citro3d::{
     attrib,
     buffer::{self, Primitive},
@@ -30,12 +32,13 @@ impl<T: VertAttrBuilder + Clone> Shape<T> {
         }
     }
 
-    pub fn draw(&self, gpu: &mut Instance) {
-        let tex = self.mat.make_texture();
+    pub fn draw(&self, gpu: &mut Instance, uniforms: &Uniforms) {
+        let tex = self.mat.get_texture();
+        self.mat.set_uniforms(gpu, uniforms);
 
         let stage0 = citro3d::texenv::Stage::new(0).unwrap();
 
-        if let Some(t) = &tex {
+        if let Some(t) = tex {
             t.bind(0);
 
             if self.mat.use_vertex_colours() {
@@ -48,7 +51,7 @@ impl<T: VertAttrBuilder + Clone> Shape<T> {
                     )
                     .func(
                         citro3d::texenv::Mode::BOTH,
-                        citro3d::texenv::CombineFunc::Modulate,
+                        citro3d::texenv::CombineFunc::Add,
                     );
             } else {
                 gpu.texenv(stage0)

@@ -1,9 +1,9 @@
 use citro3d::{math::Matrix4, uniform::Index, Instance};
 use vert_attr::VertAttrBuilder;
 
-use crate::Vec3;
+use crate::{Uniforms, Vec3};
 
-use self::shape::Shape;
+use self::{material::C3DTex, shape::Shape};
 
 pub mod colour;
 pub mod material;
@@ -22,7 +22,7 @@ impl<T: VertAttrBuilder + Clone> Model<T> {
         Self { pos, rot, shapes }
     }
 
-    pub fn draw(&self, gpu: &mut Instance, uniform: Option<Index>) {
+    pub fn draw(&self, gpu: &mut Instance, uniforms: &Uniforms) {
         let Vec3 { x, y, z } = self.pos;
 
         let mut transform = Matrix4::identity();
@@ -35,12 +35,10 @@ impl<T: VertAttrBuilder + Clone> Model<T> {
 
         transform.translate(x, y, z);
 
-        if let Some(model) = uniform {
-            gpu.bind_vertex_uniform(model, &transform);
-        }
+        gpu.bind_vertex_uniform(uniforms.model_matrix, &transform);
 
         for shape in &self.shapes {
-            shape.draw(gpu);
+            shape.draw(gpu, uniforms);
         }
     }
 }
