@@ -58,10 +58,13 @@ fn include_texture_impl(input: TokenStream) -> Result<TokenStream, Box<dyn Error
 
     // By joining these three pieces, we arrive at approximately the same behavior as `include_bytes!`
     let texture_source_file = cwd.join(invoking_source_dir).join(string_lit.value());
-    // This might be overkill, but it ensures we get a unique path if different
-    // shaders with the same relative path are used within one program
-    //.canonicalize()
-    //.map_err(|err| format!("unable to resolve absolute path of shader source: {err}"))?;
+
+    #[cfg(not(win))]
+    let texture_source_file = texture_source_file
+        // This might be overkill, but it ensures we get a unique path if different
+        // shaders with the same relative path are used within one program
+        .canonicalize()
+        .map_err(|err| format!("unable to resolve absolute path of texture source: {err}"))?;
 
     let texture_out_file: PathBuf = texture_source_file.with_extension("txbin");
 

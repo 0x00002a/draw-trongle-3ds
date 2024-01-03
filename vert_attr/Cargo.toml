@@ -9,4 +9,4 @@ edition = "2021"
 
 [dependencies]
 vert_attr_macro = { path = "../vert_attr_macro" }
-citro3d = { git = "https://github.com/rust3ds/citro3d-rs", version = "0.1.0" }
+citro3d = { git = "https://github.com/Team-Yarg/citro3d-rs" }

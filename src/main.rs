@@ -11,7 +11,7 @@ use citro3d::{
         AspectRatio, ClipPlanes, FVec3, FVec4, IVec, Matrix, Matrix4, Projection,
         StereoDisplacement,
     },
-    render::{self, ClearFlags, Target},
+    render::{self, ClearFlags, DepthFormat::Depth16, Target},
     shader::{self, Program},
     texenv,
     uniform::Index,
@@ -22,8 +22,10 @@ use ctru::{
     linear::LinearAllocator,
     prelude::*,
     services::{
+        fs::Fs,
         gfx::{RawFrameBuffer, Screen, TopScreen3D},
         ir_user::{CirclePadProInputResponse, ConnectionStatus, IrUser},
+        romfs::RomFS,
         svc::HandleExt,
     },
 };
@@ -32,12 +34,13 @@ use include_texture_macro::include_texture;
 use model::{material::Material, shape::Shape, texture::Texture, Model};
 use vert_attr::{VertAttrBuilder, VertAttrs};
 
-use crate::model::colour::Colour;
+use crate::{model::colour::Colour, obj::parse_obj};
 
 const DEADZONE: f32 = 0.01;
 const CIRCLE_DEADZONE: f32 = 15.0;
 
 mod model;
+mod obj;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
@@ -76,7 +79,7 @@ impl VertAttrs for Vec2 {
     const SIZE: u8 = 2;
 }
 
-#[derive(VertAttrBuilder, Clone)]
+#[derive(VertAttrBuilder, Clone, Debug)]
 #[repr(C)]
 struct Vert {
     pos: Vec3,
@@ -242,8 +245,13 @@ pub struct Uniforms {
 
 fn main() {
     let apt = Apt::new().unwrap();
+    let _fs = Fs::new().unwrap();
     let gfx = Gfx::new().unwrap();
     let _console = Console::new(gfx.bottom_screen.borrow_mut());
+    let mut soc = Soc::new().unwrap();
+    // will use `tty` if this fails
+    let _ = soc.redirect_to_3dslink(true, true);
+    let _romfs = RomFS::new().unwrap();
 
     let mut cpp = CirclePadPro::new().unwrap();
 
@@ -277,11 +285,11 @@ fn main() {
     let (mut top_screen_left, mut top_screen_right) = top_screen.split_mut();
 
     let RawFrameBuffer { width, height, .. } = top_screen_left.raw_framebuffer();
-    let mut top_left_target = render::Target::new(width, height, top_screen_left, None)
+    let mut top_left_target = render::Target::new(width, height, top_screen_left, Some(Depth16))
         .expect("failed to create left render target");
 
     let RawFrameBuffer { width, height, .. } = top_screen_right.raw_framebuffer();
-    let mut top_right_target = render::Target::new(width, height, top_screen_right, None)
+    let mut top_right_target = render::Target::new(width, height, top_screen_right, Some(Depth16))
         .expect("failed to create right render target");
 
     let shader_lib = shader::Library::from_bytes(SHADER).expect("failed to load shader");
@@ -317,7 +325,7 @@ fn main() {
     let mut cam_pos = Vec3::new(0.0, 0.0, 0.0);
     let mut cam_rot = Vec3::new(0.0, 0.0, 0.0);
 
-    let mut mdl = Model::new(
+    /*let mut mdl = Model::new(
         Vec3::new(0.0, 0.0, -1.5),
         Vec3::new(0.0, 0.0, 0.0),
         vec![
@@ -380,7 +388,11 @@ fn main() {
                 ],
             ),
         ],
-    );
+    );*/
+    let models = parse_obj("romfs:/textured-cornell-box.obj");
+    for i in &models {
+        println!("{:#?}", i);
+    }
 
     while apt.main_loop() {
         gfx.wait_for_vblank();
@@ -472,7 +484,10 @@ fn main() {
                 inst.bind_vertex_uniform(uniforms.projection_matrix, projection);
                 /*gpu.set_attr_info(&v_attrs);
                 gpu.draw_arrays(buffer::Primitive::TriangleFan, buf_vtos);*/
-                mdl.draw(inst, &uniforms);
+                //mdl.draw(inst, &uniforms);
+                for mdl in &models {
+                    mdl.draw(inst, &uniforms);
+                }
             };
 
             let Projections {
