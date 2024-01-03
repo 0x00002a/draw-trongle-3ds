@@ -1,6 +1,6 @@
 use crate::Uniforms;
 
-use super::material::{C3DTex, Material};
+use super::material::Material;
 use citro3d::{
     attrib,
     buffer::{self, Primitive},

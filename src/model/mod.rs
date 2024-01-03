@@ -3,7 +3,7 @@ use vert_attr::VertAttrBuilder;
 
 use crate::{Uniforms, Vec3};
 
-use self::{material::C3DTex, shape::Shape};
+use self::shape::Shape;
 
 pub mod colour;
 pub mod material;

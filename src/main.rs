@@ -253,11 +253,11 @@ fn main() {
     let _ = soc.redirect_to_3dslink(true, true);
     let _romfs = RomFS::new().unwrap();
 
-    let mut cpp = CirclePadPro::new().unwrap();
+    //let mut cpp = CirclePadPro::new().unwrap();
 
     let mut hid = Hid::new().unwrap();
 
-    cpp.connect().unwrap();
+    //cpp.connect().unwrap();
 
     unsafe {
         println!("irrstHandle: {irrstHandle:08X}\nirrstMemHandle: {irrstMemHandle:08X}\nirrstEvent: {irrstEvent:08X}\nirrstSharedMem: {irrstSharedMem:?}")
@@ -451,7 +451,7 @@ fn main() {
             }
         }
 
-        cpp.scan_input();
+        /*cpp.scan_input();
         let cpp_input = cpp.get_input();
         if let Some(input) = cpp_input {
             let (x, y) = (
@@ -465,7 +465,7 @@ fn main() {
             if y.abs() > CIRCLE_DEADZONE {
                 cam_rot.x -= y / 1000.0
             }
-        }
+        }*/
 
         gpu.render_frame_with(|inst| {
             let mut camera_matrix = Matrix4::identity();
